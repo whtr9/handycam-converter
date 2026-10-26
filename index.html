@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#0f172a">
+  <meta name="description" content="Локальный офлайн-конвертер видео MPG, MTS и M2TS (Sony Handycam) в MP4 на базе FFmpeg.wasm">
+  <title>Handycam MPG / MTS → MP4 Converter</title>
+  
+  <link rel="manifest" href="./manifest.json">
+  <link rel="icon" type="image/svg+xml" href="./icon.svg">
+  <link rel="apple-touch-icon" href="./icon.svg">
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Шапка приложения и индикатор ядра -->
+    <header class="app-header">
+      <div class="header-titles">
+        <h1>MPG / MTS / M2TS → MP4</h1>
+        <p class="subtitle">Локальный конвертер для Sony Handycam</p>
+      </div>
+      <div id="engine-status" class="status-badge status-loading" title="Статус ядра FFmpeg.wasm">
+        <span class="status-dot"></span>
+        <span id="engine-status-text">Ожидание запуска...</span>
+      </div>
+    </header>
+
+    <!-- Панель настроек конвертации -->
+    <section class="settings-panel">
+      <div class="setting-group">
+        <label for="audio-mode">Режим обработки потоков:</label>
+        <select id="audio-mode" class="select-input">
+          <option value="smart" selected>Авто (Рекомендуется): MTS без потерь + MPG в H.264/AAC (полная совместимость)</option>
+          <option value="copy">Только перепаковка (Видео и Аудио без перекодирования — только для ПК-плееров)</option>
+        </select>
+      </div>
+
+      <div class="setting-group checkbox-group">
+        <input type="checkbox" id="auto-download" checked>
+        <label for="auto-download">Автоматически скачивать готовые .mp4 файлы</label>
+      </div>
+    </section>
+
+    <!-- Зона выбора и перетаскивания файлов -->
+    <main class="main-content">
+      <div id="drop-zone" class="drop-zone" tabindex="0" role="button" aria-label="Загрузить файлы MPG, MTS или M2TS">
+        <input type="file" id="file-input" accept=".mpg,.mpeg,.mts,.m2ts,video/mpeg,video/mp2t" multiple hidden>
+        <div class="drop-zone-content">
+          <svg class="upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+          </svg>
+          <p class="drop-title">Перетащи файлы <strong>.MPG</strong>, <strong>.MTS</strong> или <strong>.M2TS</strong> сюда</p>
+          <p class="drop-subtitle">или нажми для выбора с SD-карты / устройства</p>
+        </div>
+      </div>
+
+      <!-- Панель управления очередью -->
+      <div id="controls-bar" class="controls-bar hidden">
+        <div class="queue-summary">
+          Файлов в очереди: <strong id="queue-count">0</strong>
+        </div>
+        <div class="action-buttons">
+          <button id="clear-queue-btn" class="btn btn-secondary" type="button">Очистить список</button>
+          <button id="convert-all-btn" class="btn btn-primary" type="button">Конвертировать все</button>
+        </div>
+      </div>
+
+      <!-- Список загруженных файлов -->
+      <ul id="file-list" class="file-list"></ul>
+    </main>
+
+    <!-- Техническая консоль логов FFmpeg -->
+    <footer class="app-footer">
+      <details id="log-details" class="log-details">
+        <summary>Технический лог FFmpeg</summary>
+        <pre id="ffmpeg-log" class="log-output">Лог инициализации появится здесь при запуске...</pre>
+      </details>
+      <p class="footer-note">Все файлы обрабатываются строго в оперативной памяти твоего устройства и никуда не отправляются.</p>
+    </footer>
+  </div>
+
+  <!-- Локальные зависимости FFmpeg.wasm и основной скрипт -->
+  <script src="./vendor/ffmpeg.js"></script>
+  <script src="./vendor/util.js"></script>
+  <script src="./app.js"></script>
+</body>
+</html>
