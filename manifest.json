@@ -1,8 +1,9 @@
 {
-  "name": "Handycam to MP4 Converter",
-  "short_name": "MTS → MP4",
-  "description": "Локальный офлайн-конвертер видео (Sony Handycam) в MP4",
-  "start_url": "./",
+  "id": "./index.html",
+  "name": "Handycam MPG & MTS Converter",
+  "short_name": "Handycam MP4",
+  "description": "Локальный офлайн-конвертер видео MPG, MTS и M2TS в MP4",
+  "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
   "background_color": "#0f172a",
@@ -11,9 +12,15 @@
   "icons": [
     {
       "src": "./icon.svg",
-      "sizes": "any",
+      "sizes": "192x192 512x512",
       "type": "image/svg+xml",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "./icon.svg",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
     }
   ]
 }
