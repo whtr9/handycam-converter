@@ -388,3 +388,49 @@ body {
     flex: 1;
   }
 }
+
+/* Правый блок шапки: переключатель языка + статус */
+.header-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.lang-switch {
+  display: inline-flex;
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 999px;
+  padding: 2px;
+}
+
+.lang-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.lang-btn.active {
+  background-color: var(--accent-primary);
+  color: #ffffff;
+}
+
+/* Плашка максимального размера файла внутри Drop Zone */
+.size-limit-badge {
+  display: inline-block;
+  margin-top: 14px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  background-color: rgba(59, 130, 246, 0.1);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  color: #93c5fd;
+  font-size: 0.76rem;
+  font-weight: 500;
+}
