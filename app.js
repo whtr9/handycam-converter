@@ -551,13 +551,25 @@
   // Инициализация языка и ядра
   applyLanguage(currentLang);
   initFFmpeg();
-
-  // Регистрация Service Worker для офлайн-режима PWA
+  
+  // Регистрация Service Worker с принудительной проверкой обновлений и авто-перезагрузкой
   if ('serviceWorker' in navigator) {
+    let isRefreshing = false;
+
+    // Если активировался новый Service Worker — автоматически перезагружаем страницу, чтобы показать свежую версию
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (!isRefreshing && !isProcessingQueue) {
+        isRefreshing = true;
+        window.location.reload();
+      }
+    });
+
     window.addEventListener('load', () => {
       navigator.serviceWorker
-        .register('./sw.js')
+        .register('./sw.js', { updateViaCache: 'none' })
         .then((registration) => {
+          // Принудительно проверяем наличие обновлений sw.js на сервере при каждом запуске приложения
+          registration.update();
           appendLog(t('logSwReady', registration.scope));
         })
         .catch((error) => {
