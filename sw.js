@@ -1,6 +1,5 @@
-const CACHE_NAME = 'mts-converter-cache-v6';
+const CACHE_NAME = 'mts-converter-cache-v7';
 
-// Полный список ресурсов для автономной работы (включая ядро FFmpeg ~31 МБ)
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
@@ -17,51 +16,68 @@ const ASSETS_TO_CACHE = [
   './vendor/ffmpeg-core.wasm'
 ];
 
-// 1. Установка Service Worker и сохранение всех файлов в Cache Storage
+// 1. Установка: скачиваем файлы в обход HTTP-кеша браузера и сразу активируем воркер
 self.addEventListener('install', (event) => {
+  self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      console.log('[Service Worker] Кеширование файлов приложения и ядра FFmpeg...');
-      return cache.addAll(ASSETS_TO_CACHE);
-    }).then(() => {
-      // Активируем воркер сразу, не дожидаясь закрытия вкладок
-      return self.skipWaiting();
+      const requests = ASSETS_TO_CACHE.map((url) => new Request(url, { cache: 'reload' }));
+      return cache.addAll(requests);
     })
   );
 });
 
-// 2. Активация и удаление устаревших версий кеша (если изменится CACHE_NAME)
+// 2. Активация: удаляем все старые версии кеша и перехватываем управление открытыми вкладками
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames.map((cache) => {
           if (cache !== CACHE_NAME) {
-            console.log('[Service Worker] Удаление старого кеша:', cache);
             return caches.delete(cache);
           }
         })
       );
     }).then(() => {
-      // Берем под контроль все открытые вкладки приложения
       return self.clients.claim();
     })
   );
 });
 
-// 3. Перехват сетевых запросов по стратегии Cache First
+// 3. Гибридный перехват запросов
 self.addEventListener('fetch', (event) => {
-  // Обрабатываем только GET-запросы и игнорируем временные blob-ссылки скачивания
   if (event.request.method !== 'GET' || event.request.url.startsWith('blob:')) {
     return;
   }
 
+  const url = new URL(event.request.url);
+
+  // А) Для тяжелой папки /vendor/ (~31 МБ) и иконок используем "Cache First" (экономия трафика и мгновенный старт)
+  if (url.pathname.includes('/vendor/') || url.pathname.endsWith('.png') || url.pathname.endsWith('.svg')) {
+    event.respondWith(
+      caches.match(event.request).then((cachedResponse) => {
+        return cachedResponse || fetch(event.request);
+      })
+    );
+    return;
+  }
+
+  // Б) Для HTML, CSS, JS и Manifest используем "Network First" (всегда свежая версия при наличии сети, офлайн-кеш без сети)
   event.respondWith(
-    caches.match(event.request).then((cachedResponse) => {
-      if (cachedResponse) {
-        return cachedResponse;
-      }
-      return fetch(event.request);
-    })
+    fetch(event.request, { cache: 'no-store' })
+      .then((networkResponse) => {
+        // Если сеть доступна и файл скачался — обновляем его копию в кеше и отдаем пользователю
+        if (networkResponse && networkResponse.status === 200) {
+          const responseClone = networkResponse.clone();
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(event.request, responseClone);
+          });
+        }
+        return networkResponse;
+      })
+      .catch(() => {
+        // Если интернета нет — мгновенно отдаем сохраненную версию из кеша
+        return caches.match(event.request);
+      })
   );
 });
