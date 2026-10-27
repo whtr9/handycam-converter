@@ -1,7 +1,4 @@
 # 🎥 Sony Handycam Video Converter (MPG / MTS / M2TS → MP4)
-
-![License](https://img.shields.io/badge/Privacy-100%25_Client--Side-8b5cf6?style=for-the-badge)
-
 > ** Live Application:** **[https://whtr9.github.io/handycam-converter/](https://whtr9.github.io/handycam-converter/)**
 
 ---
@@ -22,8 +19,8 @@ A lightweight, **100% offline-capable Progressive Web App (PWA)** designed to co
 | :--- | :--- |
 | **Supported Inputs** | `.mpg`, `.mpeg`, `.mts`, `.m2ts` |
 | **Output Format** | `.mp4` (`H.264` + `AAC`, `-movflags +faststart`) |
-| **Max Single File Size** | **~500 MB** on Mobile / **~1 GB** on Desktop *(32-bit WebAssembly memory limit)* |
-| **Queue Size** | Unlimited *(sequential processing)* |
+| **Max Single File Size** | **~500 MB** on Mobile / **~1 GB** on Desktop |
+| **Queue Size** | Unlimited |
 
 ---
 ### How to install the app on your device:
