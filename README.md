@@ -29,8 +29,8 @@ A lightweight, **100% offline-capable Progressive Web App (PWA)** designed to co
 3. Tap **"Install app"** in the browser menu (or "Share → Add to Home Screen" in iOS Safari)..
 ---
 
-### 🛠️ Local Development / Локальный запуск
-If you want to run the project locally / Для запуска на локальном компьютере:
+### Local Development
+If you want to run the project locally:
 
 ```bash
 git clone [https://github.com/whtr9/handycam-converter.git](https://github.com/whtr9/handycam-converter.git)
