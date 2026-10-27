@@ -4,65 +4,76 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#0f172a">
-  <meta name="description" content="Локальный офлайн-конвертер видео MPG, MTS и M2TS (Sony Handycam) в MP4 на базе FFmpeg.wasm">
+  <meta name="description" content="Local offline video converter for Sony Handycam MPG, MTS, and M2TS to MP4 powered by FFmpeg.wasm">
   <title>Handycam MPG / MTS → MP4 Converter</title>
   
   <link rel="manifest" href="./manifest.json">
   <link rel="icon" type="image/svg+xml" href="./icon.svg">
-  <link rel="apple-touch-icon" href="./icon.svg">
+  <link rel="apple-touch-icon" href="./icon-192.png">
   <link rel="stylesheet" href="./style.css">
 </head>
 <body>
   <div class="app-container">
-    <!-- Шапка приложения и индикатор ядра -->
+    <!-- Шапка приложения, переключатель языка и индикатор ядра -->
     <header class="app-header">
       <div class="header-titles">
         <h1>MPG / MTS / M2TS → MP4</h1>
-        <p class="subtitle">Локальный конвертер для Sony Handycam</p>
+        <p class="subtitle" data-i18n="subtitle">Локальный конвертер для Sony Handycam</p>
       </div>
-      <div id="engine-status" class="status-badge status-loading" title="Статус ядра FFmpeg.wasm">
-        <span class="status-dot"></span>
-        <span id="engine-status-text">Ожидание запуска...</span>
+
+      <div class="header-controls">
+        <div class="lang-switch" role="group" aria-label="Language switcher">
+          <button type="button" id="lang-ru" class="lang-btn active">RU</button>
+          <button type="button" id="lang-en" class="lang-btn">EN</button>
+        </div>
+
+        <div id="engine-status" class="status-badge status-loading">
+          <span class="status-dot"></span>
+          <span id="engine-status-text">...</span>
+        </div>
       </div>
     </header>
 
     <!-- Панель настроек конвертации -->
     <section class="settings-panel">
       <div class="setting-group">
-        <label for="audio-mode">Режим обработки потоков:</label>
+        <label for="audio-mode" data-i18n="modeLabel">Режим обработки потоков:</label>
         <select id="audio-mode" class="select-input">
-          <option value="smart" selected>Авто (Рекомендуется): MTS без потерь + MPG в H.264/AAC (полная совместимость)</option>
-          <option value="copy">Только перепаковка (Видео и Аудио без перекодирования — только для ПК-плееров)</option>
+          <option value="smart" selected data-i18n="modeSmart">Авто (Рекомендуется): MTS без потерь + MPG в H.264/AAC (полная совместимость)</option>
+          <option value="copy" data-i18n="modeCopy">Только перепаковка (Видео и Аудио без перекодирования — только для ПК-плееров)</option>
         </select>
       </div>
 
       <div class="setting-group checkbox-group">
         <input type="checkbox" id="auto-download" checked>
-        <label for="auto-download">Автоматически скачивать готовые .mp4 файлы</label>
+        <label for="auto-download" data-i18n="autoDownload">Автоматически скачивать готовые .mp4 файлы</label>
       </div>
     </section>
 
     <!-- Зона выбора и перетаскивания файлов -->
     <main class="main-content">
-      <div id="drop-zone" class="drop-zone" tabindex="0" role="button" aria-label="Загрузить файлы MPG, MTS или M2TS">
-        <input type="file" id="file-input" multiple hidden>        
-          <div class="drop-zone-content">
+      <div id="drop-zone" class="drop-zone" tabindex="0" role="button">
+        <input type="file" id="file-input" multiple hidden>
+        <div class="drop-zone-content">
           <svg class="upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
             <path stroke-linecap="round" stroke-linejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
           </svg>
-          <p class="drop-title">Перетащи файлы <strong>.MPG</strong>, <strong>.MTS</strong> или <strong>.M2TS</strong> сюда</p>
-          <p class="drop-subtitle">или нажми для выбора с SD-карты / устройства</p>
+          <p class="drop-title" data-i18n="dropTitle">Перетащи файлы <strong>.MPG</strong>, <strong>.MTS</strong> или <strong>.M2TS</strong> сюда</p>
+          <p class="drop-subtitle" data-i18n="dropSubtitle">или нажми для выбора с SD-карты / устройства</p>
+          <div class="size-limit-badge" data-i18n="sizeLimitNote">
+            Макс. размер 1 файла: до 500 МБ (смартфон) / до 1 ГБ (ПК) • Очередь без лимита
+          </div>
         </div>
       </div>
 
       <!-- Панель управления очередью -->
       <div id="controls-bar" class="controls-bar hidden">
         <div class="queue-summary">
-          Файлов в очереди: <strong id="queue-count">0</strong>
+          <span data-i18n="queueLabel">Файлов в очереди:</span> <strong id="queue-count">0</strong>
         </div>
         <div class="action-buttons">
-          <button id="clear-queue-btn" class="btn btn-secondary" type="button">Очистить список</button>
-          <button id="convert-all-btn" class="btn btn-primary" type="button">Конвертировать все</button>
+          <button id="clear-queue-btn" class="btn btn-secondary" type="button" data-i18n="clearBtn">Очистить список</button>
+          <button id="convert-all-btn" class="btn btn-primary" type="button" data-i18n="convertAllBtn">Конвертировать все</button>
         </div>
       </div>
 
@@ -73,10 +84,10 @@
     <!-- Техническая консоль логов FFmpeg -->
     <footer class="app-footer">
       <details id="log-details" class="log-details">
-        <summary>Технический лог FFmpeg</summary>
-        <pre id="ffmpeg-log" class="log-output">Лог инициализации появится здесь при запуске...</pre>
+        <summary data-i18n="logSummary">Технический лог FFmpeg</summary>
+        <pre id="ffmpeg-log" class="log-output">...</pre>
       </details>
-      <p class="footer-note">Все файлы обрабатываются строго в оперативной памяти твоего устройства и никуда не отправляются.</p>
+      <p class="footer-note" data-i18n="footerNote">Все файлы обрабатываются строго в оперативной памяти твоего устройства и никуда не отправляются.</p>
     </footer>
   </div>
 
