@@ -1,4 +1,4 @@
-const CACHE_NAME = 'mts-converter-cache-v5';
+const CACHE_NAME = 'mts-converter-cache-v6';
 
 // Полный список ресурсов для автономной работы (включая ядро FFmpeg ~31 МБ)
 const ASSETS_TO_CACHE = [
