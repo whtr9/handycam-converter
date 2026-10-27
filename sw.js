@@ -1,4 +1,4 @@
-const CACHE_NAME = 'mts-converter-cache-v7';
+const CACHE_NAME = 'mts-converter-cache-v8';
 
 const ASSETS_TO_CACHE = [
   './',
