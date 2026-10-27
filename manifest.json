@@ -1,6 +1,6 @@
 {
   "name": "Handycam MPG & MTS Converter",
-  "short_name": "Handycam MP4",
+  "short_name": "MPG & MTS Converter",
   "description": "Локальный офлайн-конвертер видео MPG, MTS и M2TS в MP4",
   "start_url": "./",
   "scope": "./",
