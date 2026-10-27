@@ -4,9 +4,111 @@
   const { FFmpeg } = window.FFmpegWASM;
   const { fetchFile } = window.FFmpegUtil;
 
+  // Словари локализации (RU / EN)
+  const I18N = {
+    ru: {
+      subtitle: 'Локальный конвертер для Sony Handycam',
+      statusLoading: 'Загрузка ядра FFmpeg (~31 МБ)...',
+      statusReady: 'Ядро готово к работе',
+      statusError: 'Ошибка загрузки ядра',
+      modeLabel: 'Режим обработки потоков:',
+      modeSmart: 'Авто (Рекомендуется): MTS без потерь + MPG в H.264/AAC (полная совместимость)',
+      modeCopy: 'Только перепаковка (Видео и Аудио без перекодирования — только для ПК-плееров)',
+      autoDownload: 'Автоматически скачивать готовые .mp4 файлы',
+      dropTitle: 'Перетащи файлы <strong>.MPG</strong>, <strong>.MTS</strong> или <strong>.M2TS</strong> сюда',
+      dropSubtitle: 'или нажми для выбора с SD-карты / устройства',
+      sizeLimitNote: 'Макс. размер 1 файла: до 500 МБ (смартфон) / до 1 ГБ (ПК) • Очередь без лимита',
+      queueLabel: 'Файлов в очереди:',
+      clearBtn: 'Очистить список',
+      convertAllBtn: 'Конвертировать все',
+      logSummary: 'Технический лог FFmpeg',
+      footerNote: 'Все файлы обрабатываются строго в оперативной памяти твоего устройства и никуда не отправляются.',
+      units: ['Б', 'КБ', 'МБ', 'ГБ'],
+      hintMpg: 'MPG (перекодирование в H.264)',
+      hintMts: 'MTS/M2TS (быстрая перепаковка)',
+      statePending: 'Ожидает',
+      stateReading: 'Чтение файла в память...',
+      stateCopy: 'Прямая перепаковка потоков в MP4...',
+      stateTranscodeMpg: 'Конвертация MPG (MPEG-2 → H.264)...',
+      stateRemuxMts: 'Перепаковка MTS в MP4...',
+      stateFinalizing: 'Формирование файла...',
+      stateDone: (sec, size) => `Готово за ${sec} сек • Итоговый размер: ${size}`,
+      stateError: (msg) => `Ошибка: ${msg}`,
+      sizeWarn: 'Внимание: файл > 800 МБ (возможна нехватка памяти браузера)',
+      btnConvert: 'Конвертировать',
+      btnProcessing: 'Обработка...',
+      btnDownload: 'Скачать .MP4',
+      btnRetry: 'Повторить',
+      logInit: 'Инициализация FFmpeg.wasm...',
+      logReady: 'Ядро FFmpeg.wasm успешно загружено (поддержка MPG, MTS, M2TS).',
+      logSkipped: (name) => `Пропущен неподдерживаемый файл: ${name} (поддерживаются только .mpg, .mpeg, .mts, .m2ts)`,
+      logAdded: (count) => `Добавлено файлов в очередь: ${count}`,
+      logStart: (name) => `--- Начало обработки: ${name} ---`,
+      logDone: (name, sec) => `Успешно завершено: ${name} (${sec} сек)`,
+      logQueueDone: 'Обработка всей очереди завершена.',
+      logCleared: 'Очередь файлов очищена, память освобождена.',
+      logSwReady: (scope) => `PWA: Service Worker активен (${scope}). Приложение готово к работе офлайн.`
+    },
+    en: {
+      subtitle: 'Local offline converter for Sony Handycam',
+      statusLoading: 'Loading FFmpeg core (~31 MB)...',
+      statusReady: 'Engine ready (Offline OK)',
+      statusError: 'Engine load error',
+      modeLabel: 'Stream processing mode:',
+      modeSmart: 'Auto (Recommended): Lossless MTS remux + MPG to H.264/AAC (universal compatibility)',
+      modeCopy: 'Stream copy only (No video/audio re-encoding — for desktop players only)',
+      autoDownload: 'Automatically download converted .mp4 files',
+      dropTitle: 'Drag & drop <strong>.MPG</strong>, <strong>.MTS</strong> or <strong>.M2TS</strong> files here',
+      dropSubtitle: 'or tap to browse from SD card / device',
+      sizeLimitNote: 'Max single file size: ~500 MB (Mobile) / ~1 GB (Desktop) • Unlimited queue',
+      queueLabel: 'Files in queue:',
+      clearBtn: 'Clear list',
+      convertAllBtn: 'Convert all',
+      logSummary: 'FFmpeg Technical Log',
+      footerNote: 'All files are processed locally in your device RAM and are never uploaded anywhere.',
+      units: ['B', 'KB', 'MB', 'GB'],
+      hintMpg: 'MPG (transcode to H.264)',
+      hintMts: 'MTS/M2TS (fast remux)',
+      statePending: 'Pending',
+      stateReading: 'Reading file into memory...',
+      stateCopy: 'Direct stream copy to MP4...',
+      stateTranscodeMpg: 'Converting MPG (MPEG-2 → H.264)...',
+      stateRemuxMts: 'Remuxing MTS to MP4...',
+      stateFinalizing: 'Building output file...',
+      stateDone: (sec, size) => `Done in ${sec}s • Output size: ${size}`,
+      stateError: (msg) => `Error: ${msg}`,
+      sizeWarn: 'Warning: file > 800 MB (may exceed browser WebAssembly memory)',
+      btnConvert: 'Convert',
+      btnProcessing: 'Processing...',
+      btnDownload: 'Download .MP4',
+      btnRetry: 'Retry',
+      logInit: 'Initializing FFmpeg.wasm...',
+      logReady: 'FFmpeg.wasm core loaded (MPG, MTS, M2TS supported).',
+      logSkipped: (name) => `Skipped unsupported file: ${name} (only .mpg, .mpeg, .mts, .m2ts allowed)`,
+      logAdded: (count) => `Added files to queue: ${count}`,
+      logStart: (name) => `--- Starting conversion: ${name} ---`,
+      logDone: (name, sec) => `Completed: ${name} (${sec}s)`,
+      logQueueDone: 'All queued files processed.',
+      logCleared: 'Queue cleared, memory freed.',
+      logSwReady: (scope) => `PWA: Service Worker active (${scope}). Ready for offline use.`
+    }
+  };
+
+  // Определение стартового языка (из localStorage или языка браузера)
+  const savedLang = localStorage.getItem('handycam_lang');
+  const browserLang = (navigator.language || 'en').toLowerCase().startsWith('ru') ? 'ru' : 'en';
+  let currentLang = savedLang === 'en' || savedLang === 'ru' ? savedLang : browserLang;
+
+  function t(key, ...args) {
+    const val = I18N[currentLang][key];
+    return typeof val === 'function' ? val(...args) : val;
+  }
+
   // Элементы интерфейса
   const engineStatusBadge = document.getElementById('engine-status');
   const engineStatusText = document.getElementById('engine-status-text');
+  const langRuBtn = document.getElementById('lang-ru');
+  const langEnBtn = document.getElementById('lang-en');
   const audioModeSelect = document.getElementById('audio-mode');
   const autoDownloadCheckbox = document.getElementById('auto-download');
   const dropZone = document.getElementById('drop-zone');
@@ -18,12 +120,12 @@
   const fileListEl = document.getElementById('file-list');
   const logOutputEl = document.getElementById('ffmpeg-log');
 
-  // Поддерживаемые расширения
   const SUPPORTED_EXTENSIONS = ['.mpg', '.mpeg', '.mts', '.m2ts'];
+  const WARN_FILE_SIZE_BYTES = 800 * 1024 * 1024; // 800 МБ
 
   // Состояние приложения
   let ffmpeg = null;
-  let isEngineLoaded = false;
+  let engineState = 'loading'; // 'loading' | 'ready' | 'error'
   let isProcessingQueue = false;
   let activeItemId = null;
   let fileQueue = [];
@@ -36,37 +138,62 @@
   }
 
   function formatBytes(bytes) {
-    if (bytes === 0) return '0 Б';
+    const units = t('units');
+    if (bytes === 0) return '0 ' + units[0];
     const k = 1024;
-    const sizes = ['Б', 'КБ', 'МБ', 'ГБ'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + units[i];
   }
 
-  /**
-   * Извлечение расширения файла в нижнем регистре (без точки)
-   */
   function getFileExtension(fileName) {
     const match = fileName.toLowerCase().match(/\.(mpg|mpeg|mts|m2ts)$/);
     return match ? match[1] : '';
   }
 
-  /**
-   * Замена расширения .mpg / .mpeg / .mts / .m2ts на .mp4
-   */
   function getOutputFileName(originalName) {
     return originalName.replace(/\.(mpg|mpeg|mts|m2ts)$/i, '') + '.mp4';
   }
 
-  function setEngineStatus(state, text) {
+  function setEngineStatus(state) {
+    engineState = state;
     engineStatusBadge.className = `status-badge status-${state}`;
-    engineStatusText.textContent = text;
+    if (state === 'loading') engineStatusText.textContent = t('statusLoading');
+    if (state === 'ready') engineStatusText.textContent = t('statusReady');
+    if (state === 'error') engineStatusText.textContent = t('statusError');
+  }
+
+  /**
+   * Применение выбранного языка ко всему интерфейсу и очереди файлов
+   */
+  function applyLanguage(lang) {
+    currentLang = lang;
+    localStorage.setItem('handycam_lang', lang);
+    document.documentElement.lang = lang;
+
+    langRuBtn.classList.toggle('active', lang === 'ru');
+    langEnBtn.classList.toggle('active', lang === 'en');
+
+    // Переводим все статические элементы с атрибутом data-i18n
+    document.querySelectorAll('[data-i18n]').forEach((el) => {
+      const key = el.getAttribute('data-i18n');
+      if (I18N[lang][key]) {
+        el.innerHTML = I18N[lang][key];
+      }
+    });
+
+    // Обновляем статус ядра
+    setEngineStatus(engineState);
+
+    // Обновляем карточки файлов в очереди
+    fileQueue.forEach((item) => {
+      refreshItemUI(item);
+    });
   }
 
   async function initFFmpeg() {
     try {
-      setEngineStatus('loading', 'Загрузка ядра FFmpeg (~31 МБ)...');
-      logOutputEl.textContent = 'Инициализация FFmpeg.wasm...';
+      setEngineStatus('loading');
+      logOutputEl.textContent = t('logInit');
 
       ffmpeg = new FFmpeg();
 
@@ -87,14 +214,13 @@
 
       await ffmpeg.load({ coreURL, wasmURL });
 
-      isEngineLoaded = true;
-      setEngineStatus('ready', 'Ядро готово к работе');
-      appendLog('Ядро FFmpeg.wasm успешно загружено (поддержка MPG, MTS, M2TS).');
+      setEngineStatus('ready');
+      appendLog(t('logReady'));
       updateControlsState();
     } catch (error) {
-      console.error('Ошибка инициализации FFmpeg:', error);
-      setEngineStatus('error', 'Ошибка загрузки ядра');
-      appendLog(`КРИТИЧЕСКАЯ ОШИБКА: ${error.message || error}`);
+      console.error('FFmpeg init error:', error);
+      setEngineStatus('error');
+      appendLog(`ERROR: ${error.message || error}`);
     }
   }
 
@@ -106,7 +232,7 @@
       const isSupported = SUPPORTED_EXTENSIONS.some((ext) => lowerName.endsWith(ext));
 
       if (!isSupported) {
-        appendLog(`Пропущен неподдерживаемый файл: ${file.name}`);
+        appendLog(t('logSkipped', file.name));
         return;
       }
 
@@ -122,7 +248,10 @@
         originalName: file.name,
         outputName: getOutputFileName(file.name),
         size: file.size,
-        status: 'pending',
+        status: 'pending', // 'pending' | 'processing' | 'done' | 'error'
+        durationSec: null,
+        outputSize: null,
+        errorMsg: null,
         blobUrl: null
       };
 
@@ -132,7 +261,7 @@
     });
 
     if (addedCount > 0) {
-      appendLog(`Добавлено файлов в очередь: ${addedCount}`);
+      appendLog(t('logAdded', addedCount));
       updateControlsState();
     }
   }
@@ -142,33 +271,68 @@
     li.className = 'file-item';
     li.id = `file-item-${item.id}`;
 
-    const modeHint = item.isMpg ? 'MPG (перекодирование в H.264)' : 'MTS/M2TS (быстрая перепаковка)';
-
     li.innerHTML = `
       <div class="file-item-header">
         <div class="file-info">
           <span class="file-name">${escapeHtml(item.originalName)} → ${escapeHtml(item.outputName)}</span>
-          <span class="file-meta" id="meta-${item.id}">${formatBytes(item.size)} • ${modeHint} • Ожидает</span>
+          <span class="file-meta" id="meta-${item.id}"></span>
         </div>
-        <div class="file-actions" id="actions-${item.id}">
-          <button type="button" class="btn btn-secondary btn-convert-single" data-id="${item.id}">
-            Конвертировать
-          </button>
-        </div>
+        <div class="file-actions" id="actions-${item.id}"></div>
       </div>
       <div class="progress-track">
         <div class="progress-fill" id="progress-${item.id}" style="width: 0%"></div>
       </div>
     `;
 
-    const singleBtn = li.querySelector('.btn-convert-single');
-    singleBtn.addEventListener('click', () => {
-      if (!isProcessingQueue && isEngineLoaded) {
-        processSingleFile(item);
-      }
-    });
-
     fileListEl.appendChild(li);
+    refreshItemUI(item);
+  }
+
+  /**
+   * Отрисовка текста статуса и кнопок карточки на текущем языке
+   */
+  function refreshItemUI(item) {
+    const metaEl = document.getElementById(`meta-${item.id}`);
+    const actionsContainer = document.getElementById(`actions-${item.id}`);
+    if (!metaEl || !actionsContainer) return;
+
+    const modeHint = item.isMpg ? t('hintMpg') : t('hintMts');
+    const sizeWarning = item.size > WARN_FILE_SIZE_BYTES ? ` • ⚠️ ${t('sizeWarn')}` : '';
+
+    if (item.status === 'pending') {
+      metaEl.textContent = `${formatBytes(item.size)} • ${modeHint} • ${t('statePending')}${sizeWarning}`;
+      actionsContainer.innerHTML = `
+        <button type="button" class="btn btn-secondary btn-convert-single" data-id="${item.id}">
+          ${t('btnConvert')}
+        </button>
+      `;
+      actionsContainer.querySelector('.btn-convert-single').addEventListener('click', () => {
+        if (!isProcessingQueue && engineState === 'ready') {
+          processSingleFile(item);
+        }
+      });
+    } else if (item.status === 'processing') {
+      actionsContainer.innerHTML = `<button type="button" class="btn btn-secondary" disabled>${t('btnProcessing')}</button>`;
+    } else if (item.status === 'done') {
+      metaEl.textContent = `${formatBytes(item.size)} • ${t('stateDone', item.durationSec, formatBytes(item.outputSize))}`;
+      actionsContainer.innerHTML = `
+        <a href="${item.blobUrl}" download="${escapeHtml(item.outputName)}" class="btn btn-success" id="download-btn-${item.id}">
+          ${t('btnDownload')}
+        </a>
+      `;
+    } else if (item.status === 'error') {
+      metaEl.textContent = `${formatBytes(item.size)} • ${t('stateError', item.errorMsg || 'Failed')}`;
+      actionsContainer.innerHTML = `
+        <button type="button" class="btn btn-secondary btn-retry" data-id="${item.id}">${t('btnRetry')}</button>
+      `;
+      actionsContainer.querySelector('.btn-retry').addEventListener('click', () => {
+        if (!isProcessingQueue && engineState === 'ready') {
+          processSingleFile(item);
+        }
+      });
+    }
+
+    updateControlsState();
   }
 
   function updateItemProgress(id, percent, modifierClass = '') {
@@ -178,27 +342,20 @@
     progressEl.className = `progress-fill ${modifierClass}`.trim();
   }
 
-  function updateItemMeta(item, statusText) {
+  function updateItemMetaText(item, statusText) {
     const metaEl = document.getElementById(`meta-${item.id}`);
     if (!metaEl) return;
     metaEl.textContent = `${formatBytes(item.size)} • ${statusText}`;
   }
 
-  /**
-   * Конвертация файла (автоматический выбор между ремуксингом MTS и транскодированием MPG)
-   */
   async function convertFileItem(item) {
-    if (!isEngineLoaded || item.status === 'done') return;
+    if (engineState !== 'ready' || item.status === 'done') return;
 
     item.status = 'processing';
     activeItemId = item.id;
-    updateItemMeta(item, 'Чтение файла в память...');
+    refreshItemUI(item);
+    updateItemMetaText(item, t('stateReading'));
     updateItemProgress(item.id, 5);
-
-    const actionsContainer = document.getElementById(`actions-${item.id}`);
-    if (actionsContainer) {
-      actionsContainer.innerHTML = `<button type="button" class="btn btn-secondary" disabled>Обработка...</button>`;
-    }
 
     const inputVirtName = `input_${item.id}.${item.ext}`;
     const outputVirtName = `output_${item.id}.mp4`;
@@ -206,22 +363,18 @@
     const startTime = performance.now();
 
     try {
-      appendLog(`--- Начало обработки: ${item.originalName} ---`);
+      appendLog(t('logStart', item.originalName));
 
-      // 1. Записываем исходный файл в виртуальную ФС MEMFS
       const fileData = await fetchFile(item.file);
       await ffmpeg.writeFile(inputVirtName, fileData);
 
-      // 2. Формируем аргументы FFmpeg в зависимости от типа файла и выбранного режима
-      const mode = audioModeSelect.value; // 'smart' или 'copy'
+      const mode = audioModeSelect.value;
       let ffmpegArgs = ['-i', inputVirtName];
 
       if (mode === 'copy') {
-        // Принудительное прямое копирование потоков без перекодирования
         ffmpegArgs.push('-c:v', 'copy', '-c:a', 'copy');
-        updateItemMeta(item, 'Прямая перепаковка потоков в MP4...');
+        updateItemMetaText(item, t('stateCopy'));
       } else if (item.isMpg) {
-        // Для .MPG / .MPEG (MPEG-2): деинтерлейсинг (yadif) + быстрое кодирование в H.264 + звук AAC
         ffmpegArgs.push(
           '-vf', 'yadif',
           '-c:v', 'libx264',
@@ -231,68 +384,44 @@
           '-c:a', 'aac',
           '-b:a', '192k'
         );
-        updateItemMeta(item, 'Конвертация MPG (MPEG-2 → H.264)...');
+        updateItemMetaText(item, t('stateTranscodeMpg'));
       } else {
-        // Для .MTS / .M2TS (AVCHD): видео H.264 копируем без потерь, аудио AC-3 переводим в AAC
         ffmpegArgs.push('-c:v', 'copy', '-c:a', 'aac', '-b:a', '192k');
-        updateItemMeta(item, 'Перепаковка MTS в MP4...');
+        updateItemMetaText(item, t('stateRemuxMts'));
       }
 
-      // Переносим заголовок moov в начало файла для мгновенного открытия в плеерах
       ffmpegArgs.push('-movflags', '+faststart', outputVirtName);
+      appendLog(`Command: ffmpeg ${ffmpegArgs.join(' ')}`);
 
-      appendLog(`Выполнение команды: ffmpeg ${ffmpegArgs.join(' ')}`);
-
-      // 3. Запуск FFmpeg
       const exitCode = await ffmpeg.exec(ffmpegArgs);
       if (exitCode !== 0) {
-        throw new Error(`FFmpeg завершился с кодом ошибки ${exitCode}`);
+        throw new Error(`FFmpeg exit code ${exitCode}`);
       }
 
-      // 4. Чтение результата из памяти
-      updateItemMeta(item, 'Формирование файла...');
+      updateItemMetaText(item, t('stateFinalizing'));
       const outputData = await ffmpeg.readFile(outputVirtName);
 
-      // 5. Создание Blob и ссылки для скачивания
       const mp4Blob = new Blob([outputData.buffer], { type: 'video/mp4' });
       item.blobUrl = URL.createObjectURL(mp4Blob);
+      item.outputSize = mp4Blob.size;
+      item.durationSec = ((performance.now() - startTime) / 1000).toFixed(1);
       item.status = 'done';
 
-      const durationSec = ((performance.now() - startTime) / 1000).toFixed(1);
       updateItemProgress(item.id, 100, 'done');
-      updateItemMeta(item, `Готово за ${durationSec} сек • Итоговый размер: ${formatBytes(mp4Blob.size)}`);
-      appendLog(`Успешно завершено: ${item.outputName} (${durationSec} сек)`);
-
-      if (actionsContainer) {
-        actionsContainer.innerHTML = `
-          <a href="${item.blobUrl}" download="${escapeHtml(item.outputName)}" class="btn btn-success" id="download-btn-${item.id}">
-            Скачать .MP4
-          </a>
-        `;
-      }
+      refreshItemUI(item);
+      appendLog(t('logDone', item.outputName, item.durationSec));
 
       if (autoDownloadCheckbox.checked) {
         triggerDownload(item.blobUrl, item.outputName);
       }
     } catch (error) {
-      console.error(`Ошибка при конвертации ${item.originalName}:`, error);
+      console.error(`Conversion error (${item.originalName}):`, error);
       item.status = 'error';
+      item.errorMsg = error.message || 'conversion failed';
       updateItemProgress(item.id, 100, 'error');
-      updateItemMeta(item, `Ошибка: ${error.message || 'сбой конвертации'}`);
-      appendLog(`ОШИБКА (${item.originalName}): ${error.message || error}`);
-
-      if (actionsContainer) {
-        actionsContainer.innerHTML = `
-          <button type="button" class="btn btn-secondary btn-retry" data-id="${item.id}">Повторить</button>
-        `;
-        actionsContainer.querySelector('.btn-retry').addEventListener('click', () => {
-          if (!isProcessingQueue && isEngineLoaded) {
-            processSingleFile(item);
-          }
-        });
-      }
+      refreshItemUI(item);
+      appendLog(`ERROR (${item.originalName}): ${item.errorMsg}`);
     } finally {
-      // Очистка виртуальной памяти MEMFS
       activeItemId = null;
       try {
         await ffmpeg.deleteFile(inputVirtName);
@@ -312,7 +441,7 @@
   }
 
   async function processAllQueue() {
-    if (isProcessingQueue || !isEngineLoaded) return;
+    if (isProcessingQueue || engineState !== 'ready') return;
 
     isProcessingQueue = true;
     updateControlsState();
@@ -325,7 +454,7 @@
 
     isProcessingQueue = false;
     updateControlsState();
-    appendLog('Обработка всей очереди завершена.');
+    appendLog(t('logQueueDone'));
   }
 
   function triggerDownload(blobUrl, fileName) {
@@ -350,7 +479,7 @@
     fileListEl.innerHTML = '';
     fileInput.value = '';
     updateControlsState();
-    appendLog('Очередь файлов очищена, память освобождена.');
+    appendLog(t('logCleared'));
   }
 
   function updateControlsState() {
@@ -362,12 +491,13 @@
       controlsBar.classList.add('hidden');
     }
 
+    const isReady = engineState === 'ready';
     const hasPending = fileQueue.some((item) => item.status === 'pending' || item.status === 'error');
-    convertAllBtn.disabled = !isEngineLoaded || isProcessingQueue || !hasPending;
+    convertAllBtn.disabled = !isReady || isProcessingQueue || !hasPending;
     clearQueueBtn.disabled = isProcessingQueue;
 
     document.querySelectorAll('.btn-convert-single, .btn-retry').forEach((btn) => {
-      btn.disabled = !isEngineLoaded || isProcessingQueue;
+      btn.disabled = !isReady || isProcessingQueue;
     });
   }
 
@@ -378,7 +508,11 @@
     });
   }
 
-  // Обработчики событий
+  // Переключатели языка
+  langRuBtn.addEventListener('click', () => applyLanguage('ru'));
+  langEnBtn.addEventListener('click', () => applyLanguage('en'));
+
+  // Обработчики файлов
   dropZone.addEventListener('click', () => fileInput.click());
   dropZone.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' || e.key === ' ') {
@@ -414,6 +548,8 @@
   convertAllBtn.addEventListener('click', processAllQueue);
   clearQueueBtn.addEventListener('click', clearQueue);
 
+  // Инициализация языка и ядра
+  applyLanguage(currentLang);
   initFFmpeg();
 
   // Регистрация Service Worker для офлайн-режима PWA
@@ -422,10 +558,10 @@
       navigator.serviceWorker
         .register('./sw.js')
         .then((registration) => {
-          appendLog(`PWA: Service Worker активен (область: ${registration.scope}). Приложение готово к работе офлайн.`);
+          appendLog(t('logSwReady', registration.scope));
         })
         .catch((error) => {
-          appendLog(`PWA: Ошибка регистрации Service Worker: ${error.message}`);
+          appendLog(`PWA Service Worker error: ${error.message}`);
         });
     });
   }
