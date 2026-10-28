@@ -1,4 +1,4 @@
-const CACHE_NAME = 'mts-converter-cache-v8.1';
+const CACHE_NAME = 'mts-converter-cache-v9';
 
 const ASSETS_TO_CACHE = [
   './',
@@ -16,7 +16,7 @@ const ASSETS_TO_CACHE = [
   './vendor/ffmpeg-core.wasm'
 ];
 
-// Временное хранилище для файлов из меню "Поделиться"
+// Очередь для файлов, переданных через системное меню "Поделиться"
 let sharedFilesQueue = [];
 
 self.addEventListener('install', (event) => {
@@ -46,25 +46,27 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
-  // ПЕРЕХВАТ WEB SHARE TARGET (POST-запросы)
-  if (event.request.method === 'POST' && event.request.url.includes(self.registration.scope)) {
-    event.respondWith(Response.redirect('./')); // Мгновенный редирект на главную (убираем ошибку 405)
-    
-    event.waitUntil(async function() {
-      try {
-        const formData = await event.request.formData();
-        const files = formData.getAll('mediaFiles'); // Извлекаем файлы по имени из manifest.json
-        if (files && files.length > 0) {
-          sharedFilesQueue = files; // Сохраняем файлы в память воркера
+  // 1. ПЕРЕХВАТ ФАЙЛОВ ИЗ МЕНЮ "ПОДЕЛИТЬСЯ" (POST-запрос)
+  if (event.request.method === 'POST') {
+    event.respondWith(
+      (async () => {
+        try {
+          const formData = await event.request.formData();
+          const files = formData.getAll('mediaFiles');
+          if (files && files.length > 0) {
+            sharedFilesQueue = files;
+          }
+        } catch (err) {
+          console.error('[SW] Ошибка чтения файла из Share Target:', err);
         }
-      } catch (e) {
-        console.error("Ошибка при обработке файлов из меню Поделиться:", e);
-      }
-    }());
+        // После того как файлы сохранены в память воркера, перенаправляем на приложение
+        return Response.redirect('./index.html?share-target=1', 303);
+      })()
+    );
     return;
   }
 
-  // СТАНДАРТНАЯ ГИБРИДНАЯ МАРШРУТИЗАЦИЯ GET-ЗАПРОСОВ
+  // 2. СТАНДАРТНАЯ ОБРАБОТКА GET-ЗАПРОСОВ
   if (event.request.method !== 'GET' || event.request.url.startsWith('blob:')) {
     return;
   }
@@ -91,13 +93,15 @@ self.addEventListener('fetch', (event) => {
   );
 });
 
-// ПРОСЛУШИВАТЕЛЬ СООБЩЕНИЙ ОТ APP.JS
+// 3. ОТПРАВКА ПЕРЕХВАЧЕННЫХ ФАЙЛОВ В APP.JS ПО ЗАПРОСУ
 self.addEventListener('message', (event) => {
   if (event.data && event.data.type === 'CHECK_SHARED_FILES') {
-    if (sharedFilesQueue.length > 0) {
-      // Отправляем файлы обратно на страницу приложения
-      event.source.postMessage({ type: 'SHARED_FILES', files: sharedFilesQueue });
-      sharedFilesQueue = []; // Очищаем очередь
+    if (sharedFilesQueue.length > 0 && event.source) {
+      event.source.postMessage({
+        type: 'SHARED_FILES',
+        files: sharedFilesQueue
+      });
+      sharedFilesQueue = [];
     }
   }
 });
