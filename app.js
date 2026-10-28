@@ -552,22 +552,26 @@
   applyLanguage(currentLang);
   initFFmpeg();
   
-  // Регистрация Service Worker с поддержкой Web Share Target
+  // Регистрация Service Worker и прием файлов из меню "Поделиться" (Web Share Target)
   if ('serviceWorker' in navigator) {
     let isRefreshing = false;
 
-    // 1. Принимаем файлы, если они были отправлены через меню "Поделиться"
+    // 1. Слушаем сообщения с файлами от Service Worker
     navigator.serviceWorker.addEventListener('message', (event) => {
       if (event.data && event.data.type === 'SHARED_FILES') {
         const files = event.data.files;
         if (files && files.length > 0) {
-          appendLog(`Получено файлов из системного меню: ${files.length}`);
+          appendLog(`Web Share Target: получено файлов (${files.length})`);
           addFilesToQueue(files);
+          // Очищаем технический параметр из адресной строки
+          if (window.location.search.includes('share-target')) {
+            window.history.replaceState({}, document.title, './index.html');
+          }
         }
       }
     });
 
-    // 2. Авто-обновление страницы при выходе новой версии sw.js
+    // 2. Авто-обновление страницы при смене версии sw.js
     navigator.serviceWorker.addEventListener('controllerchange', () => {
       if (!isRefreshing && !isProcessingQueue) {
         isRefreshing = true;
@@ -581,15 +585,17 @@
         .then((registration) => {
           registration.update();
           appendLog(t('logSwReady', registration.scope));
-          
-          // 3. Сразу после загрузки спрашиваем у Service Worker, есть ли ожидающие файлы
-          if (navigator.serviceWorker.controller) {
-            navigator.serviceWorker.controller.postMessage({ type: 'CHECK_SHARED_FILES' });
-          }
         })
         .catch((error) => {
           appendLog(`PWA Service Worker error: ${error.message}`);
         });
+
+      // 3. Как только Service Worker готов — запрашиваем у него переданные файлы
+      navigator.serviceWorker.ready.then((registration) => {
+        if (registration.active) {
+          registration.active.postMessage({ type: 'CHECK_SHARED_FILES' });
+        }
+      });
     });
   }
 })();
