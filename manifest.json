@@ -1,14 +1,27 @@
 {
+  "id": "./index.html",
   "name": "Handycam MPG & MTS Converter",
-  "short_name": "MPG & MTS Converter",
+  "short_name": "Handycam converter",
   "description": "Локальный офлайн-конвертер видео MPG, MTS и M2TS в MP4",
-  "start_url": "./",
+  "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
   "background_color": "#0f172a",
   "theme_color": "#0f172a",
   "orientation": "any",
   "icons": [
+    {
+      "src": "./icon.svg",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "./icon.svg",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    },
     {
       "src": "./icon-192.png",
       "sizes": "192x192",
@@ -20,29 +33,26 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
-    },
-    {
-      "src": "./icon-512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "maskable"
     }
-  ]
+  ],
   "share_target": {
-    "action": "./",
+    "action": "./index.html",
     "method": "POST",
     "enctype": "multipart/form-data",
     "params": {
-      "title": "name",
-      "text": "description",
-      "url": "link",
       "files": [
         {
           "name": "mediaFiles",
-          "accept": [".mpg", ".mpeg", ".mts", ".m2ts", "video/mpeg", "video/mp2t"]
+          "accept": [
+            "video/*",
+            "application/octet-stream",
+            ".mpg",
+            ".mpeg",
+            ".mts",
+            ".m2ts"
+          ]
         }
       ]
     }
   }
-}
 }
