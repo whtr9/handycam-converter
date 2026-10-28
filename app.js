@@ -552,11 +552,22 @@
   applyLanguage(currentLang);
   initFFmpeg();
   
-  // Регистрация Service Worker с принудительной проверкой обновлений и авто-перезагрузкой
+  // Регистрация Service Worker с поддержкой Web Share Target
   if ('serviceWorker' in navigator) {
     let isRefreshing = false;
 
-    // Если активировался новый Service Worker — автоматически перезагружаем страницу, чтобы показать свежую версию
+    // 1. Принимаем файлы, если они были отправлены через меню "Поделиться"
+    navigator.serviceWorker.addEventListener('message', (event) => {
+      if (event.data && event.data.type === 'SHARED_FILES') {
+        const files = event.data.files;
+        if (files && files.length > 0) {
+          appendLog(`Получено файлов из системного меню: ${files.length}`);
+          addFilesToQueue(files);
+        }
+      }
+    });
+
+    // 2. Авто-обновление страницы при выходе новой версии sw.js
     navigator.serviceWorker.addEventListener('controllerchange', () => {
       if (!isRefreshing && !isProcessingQueue) {
         isRefreshing = true;
@@ -568,9 +579,13 @@
       navigator.serviceWorker
         .register('./sw.js', { updateViaCache: 'none' })
         .then((registration) => {
-          // Принудительно проверяем наличие обновлений sw.js на сервере при каждом запуске приложения
           registration.update();
           appendLog(t('logSwReady', registration.scope));
+          
+          // 3. Сразу после загрузки спрашиваем у Service Worker, есть ли ожидающие файлы
+          if (navigator.serviceWorker.controller) {
+            navigator.serviceWorker.controller.postMessage({ type: 'CHECK_SHARED_FILES' });
+          }
         })
         .catch((error) => {
           appendLog(`PWA Service Worker error: ${error.message}`);
